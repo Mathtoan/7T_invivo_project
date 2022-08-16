@@ -122,7 +122,8 @@ if __name__ == '__main__':
 
     # finally we can call the utility for generating a dataset.json
     generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, ('MRI',),
-                          labels={0: "Background", 1: 'WMH'}, dataset_name=task_name, license='hands off!')
+                          labels={0: "Background", 1: 'Label 1', 2: 'Label 2', 3: 'Label 3',
+                                  4: 'Label 4', 5: 'Label 5', 6: 'Label 6'}, dataset_name=task_name, license='hands off!')
 
     # """
     # once this is completed, you can use the dataset like any other nnU-Net dataset. Note that since this is a 2D
