@@ -72,7 +72,7 @@ if __name__ == '__main__':
     # base = '/Users/pulkit/Desktop/ADNI_WMH_Masks/'
 
     base = '/home/mtduong/7T_invivo_project/data/nnUNet_raw_data_base/nnUNet_raw_data'
-    task_name = 'Task501_7tgm'
+    task_name = 'Task501_7Tgm'
     labels = {0: "Background", 1: 'Label 1', 2: 'Label 2', 3: 'Label 3',
               4: 'Label 4', 5: 'Label 5', 6: 'Label 6'}
 
