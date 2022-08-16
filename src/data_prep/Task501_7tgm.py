@@ -72,12 +72,14 @@ if __name__ == '__main__':
     # base = '/Users/pulkit/Desktop/ADNI_WMH_Masks/'
 
     base = '/home/mtduong/7T_invivo_project/data/nnUNet_raw_data_base/nnUNet_raw_data'
+    task_name = 'Task501_7tgm'
+    labels = {0: "Background", 1: 'Label 1', 2: 'Label 2', 3: 'Label 3',
+              4: 'Label 4', 5: 'Label 5', 6: 'Label 6'}
 
     #base = '/media/fabian/data/road_segmentation_ideal'
     # this folder should have the training and testing subfolders
 
     # now start the conversion to nnU-Net:
-    task_name = 'Task501_7tgm'
     target_base = join(base, task_name)
     target_imagesTr = join(target_base, "imagesTr")
     target_imagesTs = join(target_base, "imagesTs")
@@ -122,8 +124,7 @@ if __name__ == '__main__':
 
     # finally we can call the utility for generating a dataset.json
     generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, ('MRI',),
-                          labels={0: "Background", 1: 'Label 1', 2: 'Label 2', 3: 'Label 3',
-                                  4: 'Label 4', 5: 'Label 5', 6: 'Label 6'}, dataset_name=task_name, license='hands off!')
+                          labels=labels, dataset_name=task_name, license='hands off!')
 
     # """
     # once this is completed, you can use the dataset like any other nnU-Net dataset. Note that since this is a 2D
