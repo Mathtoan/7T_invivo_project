@@ -1,0 +1,16 @@
+{
+    "applymask": false,
+    "base": "/data/mtduong/nnUNet/nnUNet_raw_data_base/nnUNet_raw_data",
+    "dataset": "/home/mtduong/7T_invivo_project/data/warpSeg",
+    "idprefix": null,
+    "labels": {
+        "0": "Background",
+        "1": "Label 1",
+        "2": "Label 2",
+        "3": "Label 3",
+        "4": "Label 4",
+        "5": "Label 5",
+        "6": "Label 6"
+    },
+    "task_name": "Task501_7Tgm"
+}
