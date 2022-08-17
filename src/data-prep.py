@@ -20,6 +20,8 @@ parser.add_argument('-m', '--applymask', action='store_true',
                     help='Apply mask to image')
 parser.add_argument('-i', '--idprefix', type=str,
                     help='Set an ID prefix to file name')
+parser.add_argument('-p', '--train_percentage', type=float, default=1.,
+                    help='Percentage of train subject in the dataset')
 
 args = parser.parse_args()
 
@@ -30,6 +32,7 @@ labels = load_json(args.labels)
 dataset = args.dataset
 applymask = args.applymask
 idprefix = args.idprefix
+train_percentage = args.train_percentage
 
 config = {}
 config['base'] = base
@@ -38,6 +41,7 @@ config['labels'] = labels
 config['dataset'] = dataset
 config['applymask'] = applymask
 config['idprefix'] = idprefix
+config['train_percentage'] = train_percentage
 
 root = '/home/mtduong/7T_invivo_project/'
 task_root = join(root, 'task', task_name)
