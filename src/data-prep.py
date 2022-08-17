@@ -1,4 +1,3 @@
-from enum import unique
 import numpy as np
 import nibabel as nib
 from batchgenerators.utilities.file_and_folder_operations import *
