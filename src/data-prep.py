@@ -26,7 +26,6 @@ task_name = args.taskname
 labels = load_json(args.labels)
 dataset = args.dataset
 applymask = args.applymask
-id_prefix = args.idprefix
 
 config = {}
 config['base'] =base
@@ -108,4 +107,6 @@ for unique_name in training_cases:
 # finally we can call the utility for generating a dataset.json
 generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, ('MRI',),
                         labels=labels, dataset_name=task_name, license='hands off!')
+
+save_json(config, join(task_root, 'config.json'))
 
