@@ -12,9 +12,9 @@ parser.add_argument('-b', '--base', type=str, default=nnUNet_raw_data,
                     help='Set the path of nnUNet_raw_data, default is the one set in environment')
 parser.add_argument('-t', '--taskname', type=str, required=True,
                     help='Name of the task, should be in this format : Task[#]_[name]')
-parser.add_argument('-l', '--labels', type=str, required=True,
+parser.add_argument('-l', '--labels', type=str, default='/home/mtduong/7T_invivo_project/labels.json',
                     help='Path to labels.json')
-parser.add_argument('-d', '--dataset', type=str, required=True,
+parser.add_argument('-d', '--dataset', type=str, default='/data/mtduong/warpSeg',
                     help='Path to the dataset')
 parser.add_argument('-m', '--applymask', action='store_true',
                     help='Apply mask to image')
