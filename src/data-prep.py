@@ -95,44 +95,44 @@ if idprefix is not None:
     save_json(IDfile, join(task_root, 'ID.json'))
 
 
-# for subject in training_cases:
-#     ID, unique_name = subject[0], subject-[1]
-#     print(ID)
-#     im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
-#     seg_file_name = unique_name + "_3TSegTo7TDeformed.nii.gz"
+for subject in training_cases:
+    ID, unique_name = subject[0], subject-[1]
+    print(ID)
+    im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
+    seg_file_name = unique_name + "_3TSegTo7TDeformed.nii.gz"
 
 
-#     input_image_file = join(dataset, unique_name, im_file_name)
-#     input_segmentation_file = join(dataset, unique_name, seg_file_name)
+    input_image_file = join(dataset, unique_name, im_file_name)
+    input_segmentation_file = join(dataset, unique_name, seg_file_name)
 
-#     output_image_file = join(target_imagesTr, ID)  # do not specify a file ending! This will be done for you
-#     output_seg_file = join(target_labelsTr, ID)  # do not specify a file ending! This will be done for you
+    output_image_file = join(target_imagesTr, ID)  # do not specify a file ending! This will be done for you
+    output_seg_file = join(target_labelsTr, ID)  # do not specify a file ending! This will be done for you
 
-#     output_image_file = output_image_file + "_%04.0d.nii.gz" % 0
-#     output_seg_file = output_seg_file + ".nii.gz"
+    output_image_file = output_image_file + "_%04.0d.nii.gz" % 0
+    output_seg_file = output_seg_file + ".nii.gz"
 
-#     # read image, apply mask and save it
-#     image_data, img_obj = read_nifti(input_image_file)
+    # read image, apply mask and save it
+    image_data, img_obj = read_nifti(input_image_file)
 
-#     # Applying the mask
-#     if applymask:
-#         # Reading the brain mask
-#         brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
-#         brain_mask_file = join(dataset, unique_name, brain_mask_file_name)
-#         brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
+    # Applying the mask
+    if applymask:
+        # Reading the brain mask
+        brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
+        brain_mask_file = join(dataset, unique_name, brain_mask_file_name)
+        brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
 
-#         save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), output_image_file, img_obj)
+        save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), output_image_file, img_obj)
     
-#     else:
-#         save_nifti(image_data, output_image_file, img_obj)
+    else:
+        save_nifti(image_data, output_image_file, img_obj)
 
-#     # read segmentation and save it
-#     image_data, img_obj = read_nifti(input_segmentation_file)
-#     save_nifti(image_data, output_seg_file, img_obj)
+    # read segmentation and save it
+    image_data, img_obj = read_nifti(input_segmentation_file)
+    save_nifti(image_data, output_seg_file, img_obj)
 
-# # finally we can call the utility for generating a dataset.json
-# generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, ('MRI',),
-#                         labels=labels, dataset_name=task_name, license='hands off!')
+# finally we can call the utility for generating a dataset.json
+generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, ('MRI',),
+                        labels=labels, dataset_name=task_name, license='hands off!')
 
 save_json(config, join(task_root, 'config.json'))
 
