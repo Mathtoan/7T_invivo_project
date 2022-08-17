@@ -96,7 +96,7 @@ if idprefix is not None:
 
 
 for subject in training_cases:
-    ID, unique_name = subject[0], subject-[1]
+    ID, unique_name = subject[0], subject[1]
     print(ID)
     im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
     seg_file_name = unique_name + "_3TSegTo7TDeformed.nii.gz"
