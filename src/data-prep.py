@@ -5,6 +5,7 @@ from batchgenerators.utilities.file_and_folder_operations import *
 from nnunet.dataset_conversion.utils import generate_dataset_json
 from nnunet.paths import nnUNet_raw_data
 import argparse
+from random import shuffle
 
 #%% Parser
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')
@@ -77,15 +78,14 @@ maybe_mkdir_p(target_labelsTr)
 
 # Getting data from dataset
 training_cases = subdirs(dataset, join=False)
-print(training_cases, len(training_cases))
+num_cases = len(training_cases)
 
 # Assigned an ID to each file for better clarity
-
 if idprefix is not None:
-    zfill_number = int(np.log10(len(training_cases)))+1
+    zfill_number = int(np.log10(num_cases))+1
     IDfile = {}
 
-for i in range(len(training_cases)):
+for i in range(num_cases):
     if idprefix is not None:
         ID = idprefix + '_' + str(i+1).zfill(zfill_number)
 
@@ -98,19 +98,28 @@ for i in range(len(training_cases)):
 if idprefix is not None:
     save_json(IDfile, join(task_root, 'ID.json'))
 
+# Train / test repartition
+num_train = round(num_cases*train_percentage)
+train_test_set = ["train" if i<num_train else "test" for i in range(num_cases)]
+shuffle(train_test_set)
 
-for subject in training_cases:
+for i in range(num_cases):
+    subject = training_cases[i]
     ID, unique_name = subject[0], subject[1]
-    print(ID)
+    print(ID, train_test_set[i])
     im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
     seg_file_name = unique_name + "_3TSegTo7TDeformed.nii.gz"
-
 
     input_image_file = join(dataset, unique_name, im_file_name)
     input_segmentation_file = join(dataset, unique_name, seg_file_name)
 
-    output_image_file = join(target_imagesTr, ID)  # do not specify a file ending! This will be done for you
-    output_seg_file = join(target_labelsTr, ID)  # do not specify a file ending! This will be done for you
+    if train_test_set[i] == "train":
+        target_images, target_labels = target_imagesTr, target_labelsTr
+    elif train_test_set[i] == "test":
+        target_images, target_labels = target_imagesTs, target_labelsTs
+
+    output_image_file = join(target_images, ID)  # do not specify a file ending! This will be done for you
+    output_seg_file = join(target_labels, ID)  # do not specify a file ending! This will be done for you
 
     output_image_file = output_image_file + "_%04.0d.nii.gz" % 0
     output_seg_file = output_seg_file + ".nii.gz"
