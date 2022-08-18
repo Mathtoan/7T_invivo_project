@@ -14,19 +14,19 @@ def percentFloat (string):
     return value
 
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')
-parser.add_argument('-b', '--base', type=str, default=nnUNet_raw_data,
+parser.add_argument('-b', '--base', metavar='PATH', type=str, default=nnUNet_raw_data,
                     help='Set the path of nnUNet_raw_data, default is the one set in environment')
-parser.add_argument('-t', '--taskname', type=str, required=True,
+parser.add_argument('-t', '--taskname', metavar='task name', type=str, required=True,
                     help='Name of the task, should be in this format : Task[#]_[name]')
-parser.add_argument('-l', '--labels', type=str, default='/home/mtduong/7T_invivo_project/labels.json',
+parser.add_argument('-l', '--labels', metavar='PATH', type=str, default='/home/mtduong/7T_invivo_project/labels.json',
                     help='Path to labels.json')
-parser.add_argument('-d', '--dataset', type=str, default='/data/mtduong/warpSeg',
+parser.add_argument('-d', '--dataset', metavar='PATH', type=str, default='/data/mtduong/warpSeg',
                     help='Path to the dataset')
 parser.add_argument('-m', '--applymask', action='store_true',
                     help='Apply mask to image')
-parser.add_argument('-i', '--idprefix', type=str,
+parser.add_argument('-i', '--idprefix', metavar='ID prefix', type=str,
                     help='Set an ID prefix to file name')
-parser.add_argument('-p', '--train_percentage', type=percentFloat, default=1.,
+parser.add_argument('-p', '--train_percentage', metavar='percentage', type=percentFloat, default=1.,
                     help='Percentage of train subject in the dataset')
 
 args = parser.parse_args()
