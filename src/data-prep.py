@@ -7,6 +7,12 @@ import argparse
 from random import shuffle
 
 #%% Parser
+def percentFloat (string):
+    value = float(string)
+    if value < 0. or value > 1.:
+        raise argparse.ArgumentTypeError('Value has to be between 0 and 1')
+    return value
+
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')
 parser.add_argument('-b', '--base', type=str, default=nnUNet_raw_data,
                     help='Set the path of nnUNet_raw_data, default is the one set in environment')
@@ -20,7 +26,7 @@ parser.add_argument('-m', '--applymask', action='store_true',
                     help='Apply mask to image')
 parser.add_argument('-i', '--idprefix', type=str,
                     help='Set an ID prefix to file name')
-parser.add_argument('-p', '--train_percentage', type=float, default=1.,
+parser.add_argument('-p', '--train_percentage', type=percentFloat, default=1.,
                     help='Percentage of train subject in the dataset')
 
 args = parser.parse_args()

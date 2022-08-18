@@ -12,5 +12,8 @@
         "5": "Label 5",
         "6": "Label 6"
     },
+    "num_subjects": 12,
+    "num_test_subjects": 0,
+    "num_train_subjects": 12,
     "task_name": "Task501_7Tgm"
 }
