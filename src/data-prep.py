@@ -34,15 +34,6 @@ applymask = args.applymask
 idprefix = args.idprefix
 train_percentage = args.train_percentage
 
-config = {}
-config['base'] = base
-config['task_name'] = task_name
-config['labels'] = labels
-config['dataset'] = dataset
-config['applymask'] = applymask
-config['idprefix'] = idprefix
-config['train_percentage'] = train_percentage
-
 root = '/home/mtduong/7T_invivo_project/'
 task_root = join(root, 'task', task_name)
 maybe_mkdir_p(task_root)
@@ -77,14 +68,14 @@ maybe_mkdir_p(target_labelsTr)
 
 # Getting data from dataset
 training_cases = subdirs(dataset, join=False)
-num_cases = len(training_cases)
+num_subjects = len(training_cases)
 
 # Assigned an ID to each file for better clarity
 if idprefix is not None:
-    zfill_number = int(np.log10(num_cases))+1
+    zfill_number = int(np.log10(num_subjects))+1
     IDfile = {}
 
-for i in range(num_cases):
+for i in range(num_subjects):
     if idprefix is not None:
         ID = idprefix + '_' + str(i+1).zfill(zfill_number)
 
@@ -93,16 +84,12 @@ for i in range(num_cases):
         ID = training_cases[i]
     training_cases[i] = [ID, training_cases[i]]
 
-# Saving ID/unique name into a json file
-if idprefix is not None:
-    save_json(IDfile, join(task_root, 'ID.json'))
-
 # Train / test repartition
-num_train = round(num_cases*train_percentage)
-train_test_set = ["train" if i<num_train else "test" for i in range(num_cases)]
+num_train_subjects = round(num_subjects*train_percentage)
+train_test_set = ["train" if i<num_train_subjects else "test" for i in range(num_subjects)]
 shuffle(train_test_set)
 
-for i in range(num_cases):
+for i in range(num_subjects):
     subject = training_cases[i]
     ID, unique_name = subject[0], subject[1]
     print(ID, train_test_set[i])
@@ -142,9 +129,26 @@ for i in range(num_cases):
     image_data, img_obj = read_nifti(input_segmentation_file)
     save_nifti(image_data, output_seg_file, img_obj)
 
+#%% setting json files
 # finally we can call the utility for generating a dataset.json
 generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, ('MRI',),
                         labels=labels, dataset_name=task_name, license='hands off!')
+
+# Saving ID/unique name into a json file
+if idprefix is not None:
+    save_json(IDfile, join(task_root, 'ID.json'))
+
+# Saving configuration in json file
+config = {}
+config['base'] = base
+config['task_name'] = task_name
+config['labels'] = labels
+config['dataset'] = dataset
+config['applymask'] = applymask
+config['idprefix'] = idprefix
+config['num_subjects'] = num_subjects
+config['num_train_subjects'] = num_train_subjects
+config['num_test_subjects'] = num_subjects - num_train_subjects
 
 save_json(config, join(task_root, 'config.json'))
 
