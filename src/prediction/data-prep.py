@@ -31,3 +31,40 @@ prediction_data_root = args.prediction_data_root
 # output_folder = args.output_folder
 task_name = args.task_name
 model = args.model
+
+#%% Read and write nifti functions
+def read_nifti(filepath_image):
+
+    img = nib.load(filepath_image)
+    image_data = img.get_fdata()
+
+    return image_data, img
+
+def save_nifti(image, filepath_name, img_obj):
+
+    img = nib.Nifti1Image(image, img_obj.affine, header=img_obj.header)
+    nib.save(img, filepath_name)
+
+#%% Setting up path
+#TODO : custom mkdir so we can reset the folder
+input_folder = join(prediction_data_root, model, task_name, 'input')
+output_folder = join(prediction_data_root, model, task_name, 'output')
+maybe_mkdir_p(input_folder)
+maybe_mkdir_p(output_folder)
+
+#%% Putting data to input folder TODO : maybe to be modified according to the data set
+
+predicted_cases = [] #TODO : Looking for file in dataset, it'll depend on how it's agence
+
+for i in range(len(predicted_cases)):
+    subject = predicted_cases[i]
+    ID, unique_name = subject[0], subject[1]
+    
+    im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
+    raw_data_file = join(raw_data_folder, unique_name, im_file_name)
+
+    input_image_file = join(input_folder, ID) # do not specify a file ending! This will be done for you
+    input_image_file = input_image_file + "_%04.0d.nii.gz" % 0 # for now, end of file is 0000 because there is only one modality
+
+    image_data, img_obj = read_nifti(input_image_file)
+    save_nifti(image_data, input_image_file, img_obj)
