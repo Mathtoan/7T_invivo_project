@@ -28,6 +28,9 @@ parser.add_argument('-i', '--idprefix', metavar='ID prefix', type=str,
                     help='Set an ID prefix to file name')
 parser.add_argument('-p', '--train_percentage', metavar='percentage', type=percentFloat, default=1.,
                     help='Percentage of train subject in the dataset')
+parser.add_argument('-n', '--dry_run', action='store_true',
+                    help="Doing a dry run by not copying the file to nnUNet_raw_data."
+                         "For debug purposes")
 
 args = parser.parse_args()
 
@@ -39,6 +42,7 @@ dataset = args.dataset
 applymask = args.applymask
 idprefix = args.idprefix
 train_percentage = args.train_percentage
+dry_run = args.dry_run
 
 root = '/home/mtduong/7T_invivo_project/'
 task_root = join(root, 'task', task_name)
@@ -117,28 +121,30 @@ for i in range(num_subjects):
     output_seg_file = output_seg_file + ".nii.gz"
 
     # read image, apply mask and save it
-    image_data, img_obj = read_nifti(input_image_file)
+    if not dry_run:
+        image_data, img_obj = read_nifti(input_image_file)
 
-    # Applying the mask
-    if applymask:
-        # Reading the brain mask
-        brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
-        brain_mask_file = join(dataset, unique_name, brain_mask_file_name)
-        brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
+        # Applying the mask
+        if applymask:
+            # Reading the brain mask
+            brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
+            brain_mask_file = join(dataset, unique_name, brain_mask_file_name)
+            brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
 
-        save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), output_image_file, img_obj)
-    
-    else:
-        save_nifti(image_data, output_image_file, img_obj)
+            save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), output_image_file, img_obj)
+        
+        else:
+            save_nifti(image_data, output_image_file, img_obj)
 
-    # read segmentation and save it
-    image_data, img_obj = read_nifti(input_segmentation_file)
-    save_nifti(image_data, output_seg_file, img_obj)
+        # read segmentation and save it
+        image_data, img_obj = read_nifti(input_segmentation_file)
+        save_nifti(image_data, output_seg_file, img_obj)
 
 #%% setting json files
 # finally we can call the utility for generating a dataset.json
-generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, ('MRI',),
-                        labels=labels, dataset_name=task_name, license='hands off!')
+if not dry_run:
+    generate_dataset_json(join(target_base, 'dataset.json'), target_imagesTr, target_imagesTs, ('MRI',),
+                            labels=labels, dataset_name=task_name, license='hands off!')
 
 # Saving ID/unique name into a json file
 if idprefix is not None:
