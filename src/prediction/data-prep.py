@@ -7,7 +7,7 @@ from random import shuffle
 
 #%% Parser
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')
-parser.add_argument('-d', '-raw_data_folder', type=str, required=True,
+parser.add_argument('-d', '--raw_data_folder', type=str, required=True,
                     help='Folder where the data to predict are.')
 parser.add_argument('-r', '--prediction_data_root', type=str, default='/data/mtduong/7T_invivo_project/nnUNet_prediction')
 # parser.add_argument("-i", '--input_folder', type=str,
@@ -52,13 +52,14 @@ output_folder = join(prediction_data_root, model, task_name, 'output')
 maybe_mkdir_p(input_folder)
 maybe_mkdir_p(output_folder)
 
-#%% Putting data to input folder TODO : maybe to be modified according to the data set
+#%% Putting data to input folder
+predicted_cases = subdirs(raw_data_folder, join=False)
+num_subjects = len(predicted_cases) 
 
-predicted_cases = [] #TODO : Looking for file in dataset, it'll depend on how it's agence
 
 for i in range(len(predicted_cases)):
     subject = predicted_cases[i]
-    ID, unique_name = subject[0], subject[1]
+    ID, unique_name = subject, subject #TODO
     
     im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
     raw_data_file = join(raw_data_folder, unique_name, im_file_name)
