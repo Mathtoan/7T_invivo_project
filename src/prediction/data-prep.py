@@ -67,5 +67,5 @@ for i in range(len(predicted_cases)):
     input_image_file = join(input_folder, ID) # do not specify a file ending! This will be done for you
     input_image_file = input_image_file + "_%04.0d.nii.gz" % 0 # for now, end of file is 0000 because there is only one modality
 
-    image_data, img_obj = read_nifti(input_image_file)
+    image_data, img_obj = read_nifti(raw_data_file)
     save_nifti(image_data, input_image_file, img_obj)
