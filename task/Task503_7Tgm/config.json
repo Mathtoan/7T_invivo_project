@@ -1,0 +1,19 @@
+{
+    "applymask": false,
+    "base": "/data/mtduong/nnUNet/nnUNet_raw_data_base/nnUNet_raw_data",
+    "dataset": "/data/mtduong/warpSeg",
+    "idprefix": "7T_Brain",
+    "labels": {
+        "0": "Background",
+        "1": "Label 1",
+        "2": "Label 2",
+        "3": "Label 3",
+        "4": "Label 4",
+        "5": "Label 5",
+        "6": "Label 6"
+    },
+    "num_subjects": 12,
+    "num_test_subjects": 0,
+    "num_train_subjects": 12,
+    "task_name": "Task503_7Tgm"
+}
