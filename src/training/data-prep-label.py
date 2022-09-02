@@ -33,10 +33,16 @@ parser.add_argument('-n', '--dry_run', action='store_true',
                          "For debug purposes")
 parser.add_argument('-r','--labels_to_remove', nargs='+', required=True,
                     help='Labels to remove')
+parser.add_argument('-R','--reference_label', type=int, required=True,
+                    help='Reference label for merging')
+parser.add_argument('-Rm', '--reference_name', type=str, default=None,
+                    help='New name of reference')
+parser.add_argument('-M','--labels_to_merge', nargs='+', required=True,
+                    help='Labels to remove')
 
 args = parser.parse_args()
 
-#%% Parameter
+#%% Parameter configutation
 base = args.base
 task_name = args.taskname
 labels = load_json(args.labels)
@@ -46,11 +52,41 @@ idprefix = args.idprefix
 train_percentage = args.train_percentage
 dry_run = args.dry_run
 labels_to_remove = args.labels_to_remove
+reference_label = args.reference_label
+reference_name = args.reference_name
+if reference_name is None:
+    reference_name = labels[str(reference_label)]
+labels_to_merge = args.labels_to_merge
 
+#%% Labels management
+# Checking labels removing and merging
+if str(reference_label) in labels_to_remove:
+    raise ValueError("reference label is a label to be removed")
+
+for x in labels_to_merge:
+    if x in labels_to_remove:
+        raise ValueError("label to be merged is a label to be removed")
+
+# Removing label to be removed in label list
+print("removing label", [(x, labels[x]) for x in labels_to_remove])
 for i in range(len(labels_to_remove)):
     del labels[labels_to_remove[i]]
 
-print(labels_to_remove)
+# Removing label to merge from label list
+print("merging labels", [(x, labels[x]) for x in labels_to_merge], "into", (reference_label, labels[str(reference_label)]), 
+      "refered as", reference_name)
+labels_used_during_merging = [int(x) for x in labels_to_merge]
+labels_used_during_merging.append(reference_label)
+labels_used_during_merging.sort()
+min_label_merged = labels_used_during_merging[0]
+
+for i in range(len(labels_used_during_merging)):
+    if i == 0:
+        labels[str(labels_used_during_merging[i])] = reference_name
+    else:
+        del labels[str(labels_used_during_merging[i])]
+
+print("Labels are", labels)
 
 root = '/home/mtduong/7T_invivo_project/'
 task_root = join(root, 'task', task_name)
@@ -147,8 +183,14 @@ for i in range(num_subjects):
 
         # read segmentation and save it
         image_data, img_obj = read_nifti(input_segmentation_file)
+
+        # Removing labels
         for i in range(len(labels_to_remove)):
             image_data[image_data==int(labels_to_remove[i])] = 0
+        
+        # Merging labels
+        for i in range(len(labels_to_merge)):
+            image_data[image_data==int(labels_to_merge[i])] = int(min_label_merged)
         save_nifti(image_data, output_seg_file, img_obj)
 
 #%% setting json files
