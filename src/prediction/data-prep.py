@@ -8,7 +8,7 @@ from glob import glob
 
 #%% Parser
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')
-parser.add_argument('-d', '--dataset_folder', type=str, required=True,
+parser.add_argument('-d', '--dataset_folder', type=str, default='/data/mtduong/7T_invivo_project/dataset/',
                     help='Folder where the data to predict are.')
 parser.add_argument('-r', '--prediction_data_root', type=str, default='/data/mtduong/7T_invivo_project/nnUNet_prediction')
 # parser.add_argument("-i", '--input_folder', type=str,
