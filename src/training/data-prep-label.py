@@ -20,7 +20,7 @@ parser.add_argument('-t', '--taskname', metavar='task name', type=str, required=
                     help='Name of the task, should be in this format : Task[#]_[name]')
 parser.add_argument('-l', '--labels', metavar='PATH', type=str, default='/home/mtduong/7T_invivo_project/labels.json',
                     help='Path to labels.json')
-parser.add_argument('-d', '--dataset', metavar='PATH', type=str, default='/data/mtduong/warpSeg',
+parser.add_argument('-d', '--dataset', metavar='PATH', type=str, default='/data/mtduong/7T_invivo_project/dataset/preprocessed',
                     help='Path to the dataset')
 parser.add_argument('-m', '--applymask', action='store_true',
                     help='Apply mask to image')
@@ -39,6 +39,9 @@ parser.add_argument('-Rm', '--reference_name', type=str, default=None,
                     help='New name of reference')
 parser.add_argument('-M','--labels_to_merge', nargs='+', required=True,
                     help='Labels to remove')
+parser.add_argument('-tr', '--train_set', default="/data/mtduong/7T_invivo_project/dataset/trainset1.json",
+                    help="path of the train set json file.")
+
 
 args = parser.parse_args()
 
@@ -57,6 +60,7 @@ reference_name = args.reference_name
 if reference_name is None:
     reference_name = labels[str(reference_label)]
 labels_to_merge = args.labels_to_merge
+trainset = load_json(args.train_set)["trainset"]
 
 #%% Labels management
 # Checking labels removing and merging
@@ -122,7 +126,14 @@ if not dry_run:
 #%% Putting data in nnUNet_raw_data
 
 # Getting data from dataset
-training_cases = subdirs(dataset, join=False)
+all_cases = subdirs(dataset, join=False)
+training_cases = []
+print(trainset)
+for case in all_cases:
+    print(case)
+    if case in trainset:
+        training_cases.append(case)
+print(training_cases)
 num_subjects = len(training_cases)
 
 # Assigned an ID to each file for better clarity
@@ -215,6 +226,7 @@ if not dry_run:
     config['num_subjects'] = num_subjects
     config['num_train_subjects'] = num_train_subjects
     config['num_test_subjects'] = num_subjects - num_train_subjects
+    config['trainset'] = trainset
 
     save_json(config, join(task_root, 'config.json'))
 
