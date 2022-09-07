@@ -20,7 +20,7 @@ parser.add_argument('-t', '--taskname', metavar='task name', type=str, required=
                     help='Name of the task, should be in this format : Task[#]_[name]')
 parser.add_argument('-l', '--labels', metavar='PATH', type=str, default='/home/mtduong/7T_invivo_project/labels.json',
                     help='Path to labels.json')
-parser.add_argument('-d', '--dataset', metavar='PATH', type=str, default='/data/mtduong/warpSeg',
+parser.add_argument('-d', '--dataset', metavar='PATH', type=str, default='/data/mtduong/7T_invivo_project/dataset/preprocessed',
                     help='Path to the dataset')
 parser.add_argument('-m', '--applymask', action='store_true',
                     help='Apply mask to image')
@@ -31,6 +31,8 @@ parser.add_argument('-p', '--train_percentage', metavar='percentage', type=perce
 parser.add_argument('-n', '--dry_run', action='store_true',
                     help="Doing a dry run by not copying the file to nnUNet_raw_data."
                          "For debug purposes")
+parser.add_argument('-tr', '--train_set', default="/data/mtduong/7T_invivo_project/dataset/trainset1.json",
+                    help="path of the train set json file.")
 
 args = parser.parse_args()
 
@@ -43,6 +45,7 @@ applymask = args.applymask
 idprefix = args.idprefix
 train_percentage = args.train_percentage
 dry_run = args.dry_run
+trainset = load_json(args.train_set)["trainset"]
 
 root = '/home/mtduong/7T_invivo_project/'
 task_root = join(root, 'task', task_name)
@@ -77,7 +80,14 @@ maybe_mkdir_p(target_labelsTr)
 #%% Putting data in nnUNet_raw_data
 
 # Getting data from dataset
-training_cases = subdirs(dataset, join=False)
+all_cases = subdirs(dataset, join=False)
+training_cases = []
+print(trainset)
+for case in all_cases:
+    print(case)
+    if case in trainset:
+        training_cases.append(case)
+print(training_cases)
 num_subjects = len(training_cases)
 
 # Assigned an ID to each file for better clarity
@@ -161,6 +171,7 @@ config['idprefix'] = idprefix
 config['num_subjects'] = num_subjects
 config['num_train_subjects'] = num_train_subjects
 config['num_test_subjects'] = num_subjects - num_train_subjects
+config['trainset'] = trainset
 
 save_json(config, join(task_root, 'config.json'))
 
