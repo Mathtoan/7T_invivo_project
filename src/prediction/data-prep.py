@@ -7,7 +7,7 @@ from random import shuffle
 
 #%% Parser
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')
-parser.add_argument('-d', '--raw_data_folder', type=str, required=True,
+parser.add_argument('-d', '--dataset_folder', type=str, required=True,
                     help='Folder where the data to predict are.')
 parser.add_argument('-r', '--prediction_data_root', type=str, default='/data/mtduong/7T_invivo_project/nnUNet_prediction')
 # parser.add_argument("-i", '--input_folder', type=str,
@@ -23,17 +23,23 @@ parser.add_argument('-M', '--applymask', action='store_true',
                     help='Apply mask to image')
 parser.add_argument('-m', '--model', default="3d_fullres",
                     help="2d, 3d_lowres, 3d_fullres or 3d_cascade_fullres. Default: 3d_fullres")
+parser.add_argument('-p', '--preprocessed', action='store_true',
+                    help="Choose if data is preprocessed or not")
+parser.add_argument('-tr', '--train_set', default="/data/mtduong/7T_invivo_project/dataset/trainset1.json",
+                    help="path of the train set json file.")
 
 args = parser.parse_args()
 
 #%% Parameter
-raw_data_folder = args.raw_data_folder
+dataset_folder = args.dataset_folder
 prediction_data_root = args.prediction_data_root
 # input_folder = args.input_folder
 # output_folder = args.output_folder
 task_name = args.task_name
 apply_mask = args.applymask
 model = args.model
+trainset = load_json(args.train_set)["trainset"]
+preprocessed = args.preprocessed
 
 #%% Read and write nifti functions
 def read_nifti(filepath_image):
@@ -50,33 +56,47 @@ def save_nifti(image, filepath_name, img_obj):
 
 #%% Setting up path
 #TODO : custom mkdir so we can reset the folder
-input_folder = join(prediction_data_root, model, task_name, 'preprocessed/input')
-output_folder = join(prediction_data_root, model, task_name, 'preprocessed/output')
+if preprocessed:
+    preprocessed_directory = 'preprocessed'
+else:
+    preprocessed_directory = 'not_preprocessed'
+input_folder = join(prediction_data_root, model, task_name, preprocessed_directory,'input')
+output_folder = join(prediction_data_root, model, task_name, preprocessed_directory,'output')
 maybe_mkdir_p(input_folder)
 maybe_mkdir_p(output_folder)
 
 #%% Putting data to input folder
-predicted_cases = subdirs(raw_data_folder, join=False)
-num_subjects = len(predicted_cases) 
+if preprocessed:
+    dataset_preprocessed_folder = join(dataset_folder, 'preprocessed')
+    all_cases = subdirs(dataset_preprocessed_folder, join=False)
+    predicted_cases = []
+    print(trainset)
+    for case in all_cases:
+        print(case)
+        if case not in trainset:
+            predicted_cases.append(case)
+    print(predicted_cases)
 
 
-for i in range(len(predicted_cases)):
-    subject = predicted_cases[i]
-    ID, unique_name = subject, subject #TODO
-    
-    im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
-    raw_data_file = join(raw_data_folder, unique_name, im_file_name)
+    for i in range(len(predicted_cases)):
+        subject = predicted_cases[i]
+        ID, unique_name = subject, subject #TODO
+        
+        im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
+        raw_data_file = join(dataset_preprocessed_folder, unique_name, im_file_name)
 
-    input_image_file = join(input_folder, ID) # do not specify a file ending! This will be done for you
-    input_image_file = input_image_file + "_%04.0d.nii.gz" % 0 # for now, end of file is 0000 because there is only one modality
+        input_image_file = join(input_folder, ID) # do not specify a file ending! This will be done for you
+        input_image_file = input_image_file + "_%04.0d.nii.gz" % 0 # for now, end of file is 0000 because there is only one modality
 
-    image_data, img_obj = read_nifti(raw_data_file)
-    if apply_mask:
-        # Reading the brain mask
-        brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
-        brain_mask_file = join(raw_data_folder, unique_name, brain_mask_file_name)
-        brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
-        save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), input_image_file, img_obj)
-    else:
+        image_data, img_obj = read_nifti(raw_data_file)
+        if apply_mask:
+            # Reading the brain mask
+            brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
+            brain_mask_file = join(dataset_preprocessed_folder, unique_name, brain_mask_file_name)
+            brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
+            save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), input_image_file, img_obj)
+        else:
 
-        save_nifti(image_data, input_image_file, img_obj)
+            save_nifti(image_data, input_image_file, img_obj)
+else: #TODO
+    pass
