@@ -4,6 +4,7 @@ from batchgenerators.utilities.file_and_folder_operations import *
 from nnunet.paths import nnUNet_raw_data
 import argparse
 from random import shuffle
+from glob import glob
 
 #%% Parser
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')
@@ -66,9 +67,9 @@ maybe_mkdir_p(input_folder)
 maybe_mkdir_p(output_folder)
 
 #%% Putting data to input folder
+dataset_preprocessed_folder = join(dataset_folder, preprocessed_directory)
+all_cases = subdirs(dataset_preprocessed_folder, join=False)
 if preprocessed:
-    dataset_preprocessed_folder = join(dataset_folder, 'preprocessed')
-    all_cases = subdirs(dataset_preprocessed_folder, join=False)
     predicted_cases = []
     print(trainset)
     for case in all_cases:
@@ -77,26 +78,39 @@ if preprocessed:
             predicted_cases.append(case)
     print(predicted_cases)
 
+else:
+    predicted_cases = []
+    print(trainset)
+    for case in all_cases:
+        print(case)
+        correct_file = glob(join(dataset_preprocessed_folder, case, "*M*PRAGE_6*.nii.gz"))
+        if case not in trainset and len(correct_file) == 1:
+            predicted_cases.append(case)
+    print(predicted_cases)
 
-    for i in range(len(predicted_cases)):
-        subject = predicted_cases[i]
-        ID, unique_name = subject, subject #TODO
-        
+
+
+
+for i in range(len(predicted_cases)):
+    subject = predicted_cases[i]
+    ID, unique_name = subject, subject #TODO
+    
+    if preprocessed:
         im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
         raw_data_file = join(dataset_preprocessed_folder, unique_name, im_file_name)
+    else:
+        correct_file = glob(join(dataset_preprocessed_folder, subject, "*M*PRAGE_6*.nii.gz"))
+        raw_data_file = correct_file[0]
 
-        input_image_file = join(input_folder, ID) # do not specify a file ending! This will be done for you
-        input_image_file = input_image_file + "_%04.0d.nii.gz" % 0 # for now, end of file is 0000 because there is only one modality
+    input_image_file = join(input_folder, ID) # do not specify a file ending! This will be done for you
+    input_image_file = input_image_file + "_%04.0d.nii.gz" % 0 # for now, end of file is 0000 because there is only one modality
 
-        image_data, img_obj = read_nifti(raw_data_file)
-        if apply_mask:
-            # Reading the brain mask
-            brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
-            brain_mask_file = join(dataset_preprocessed_folder, unique_name, brain_mask_file_name)
-            brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
-            save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), input_image_file, img_obj)
-        else:
-
-            save_nifti(image_data, input_image_file, img_obj)
-else: #TODO
-    pass
+    image_data, img_obj = read_nifti(raw_data_file)
+    if apply_mask:
+        # Reading the brain mask
+        brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
+        brain_mask_file = join(dataset_preprocessed_folder, unique_name, brain_mask_file_name)
+        brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
+        save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), input_image_file, img_obj)
+    else:
+        save_nifti(image_data, input_image_file, img_obj)
