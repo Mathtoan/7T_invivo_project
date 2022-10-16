@@ -96,19 +96,19 @@ for i in range(len(predicted_cases)):
     ID, unique_name = subject, subject #TODO
     
     if preprocessed:
-        im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
+        im_file_name = f"{unique_name}_T1w_7T_Preproc.nii.gz"
         raw_data_file = join(dataset_preprocessed_folder, unique_name, im_file_name)
     else:
         correct_file = glob(join(dataset_preprocessed_folder, subject, "*M*PRAGE_6*.nii.gz"))
         raw_data_file = correct_file[0]
 
     input_image_file = join(input_folder, ID) # do not specify a file ending! This will be done for you
-    input_image_file = input_image_file + "_%04.0d.nii.gz" % 0 # for now, end of file is 0000 because there is only one modality
+    input_image_file = f"{input_image_file}_{0:04.d}.nii.gz" # for now, end of file is 0000 because there is only one modality
 
     image_data, img_obj = read_nifti(raw_data_file)
     if apply_mask:
         # Reading the brain mask
-        brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
+        brain_mask_file_name =  f"{unique_name}_T1w_7T_Preproc_BrainMask.nii.gz"
         brain_mask_file = join(dataset_preprocessed_folder, unique_name, brain_mask_file_name)
         brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
         save_nifti(np.multiply(image_data, brain_mask_data[:,:,:,0]), input_image_file, img_obj)

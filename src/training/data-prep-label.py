@@ -159,8 +159,8 @@ for i in range(num_subjects):
     subject = training_cases[i]
     ID, unique_name = subject[0], subject[1]
     print(ID, train_test_set[i])
-    im_file_name = unique_name + "_T1w_7T_Preproc.nii.gz"
-    seg_file_name = unique_name + "_3TSegTo7TDeformed.nii.gz"
+    im_file_name = f"{unique_name}_T1w_7T_Preproc.nii.gz"
+    seg_file_name = f"{unique_name}_3TSegTo7TDeformed.nii.gz"
 
     input_image_file = join(dataset, unique_name, im_file_name)
     input_segmentation_file = join(dataset, unique_name, seg_file_name)
@@ -173,8 +173,8 @@ for i in range(num_subjects):
     output_image_file = join(target_images, ID)  # do not specify a file ending! This will be done for you
     output_seg_file = join(target_labels, ID)  # do not specify a file ending! This will be done for you
 
-    output_image_file = output_image_file + "_%04.0d.nii.gz" % 0
-    output_seg_file = output_seg_file + ".nii.gz"
+    output_image_file = f"{output_image_file}_{0:04d}.nii.gz"
+    output_seg_file = f"{output_seg_file}.nii.gz"
 
     # read image, apply mask and save it
     if not dry_run:
@@ -183,7 +183,7 @@ for i in range(num_subjects):
         # Applying the mask
         if applymask:
             # Reading the brain mask
-            brain_mask_file_name = unique_name + "_T1w_7T_Preproc_BrainMask.nii.gz"
+            brain_mask_file_name = f"{unique_name}_T1w_7T_Preproc_BrainMask.nii.gz"
             brain_mask_file = join(dataset, unique_name, brain_mask_file_name)
             brain_mask_data, brain_mask_obj = read_nifti(brain_mask_file)
 
