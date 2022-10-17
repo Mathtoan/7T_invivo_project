@@ -38,7 +38,7 @@ for subject in subjects_list:
     print(f'Subject {subject}', end='...')
     date = subdirs(os.path.join(dataset_folder, subject), join=False)[-1]
     suffix = f'{date}_{subject}'
-    img_fname = f'{suffix}_{suffix}.nii.gz'
+    img_fname = f'{suffix}_{operation_type}.nii.gz'
     img_path = os.path.join(dataset_folder, subject, date, img_fname)
 
     ln_fname = f'{suffix}_{operation_type}_0000.nii.gz'
