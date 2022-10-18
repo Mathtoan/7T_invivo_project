@@ -1,6 +1,6 @@
 import argparse
-import sys
 
+import nibabel as nib
 import numpy as np
 
 from batchgenerators.utilities.file_and_folder_operations import *
@@ -8,8 +8,20 @@ from glob import glob
 from nnunet.paths import nnUNet_raw_data
 from random import shuffle
 
-sys.path.insert(1, '../')
-from utils import read_nifti, save_nifti
+#%% Functions
+# Read and write nifti functions
+def read_nifti(filepath_image):
+
+    img = nib.load(filepath_image)
+    image_data = img.get_fdata()
+
+    return image_data, img
+
+def save_nifti(image, filepath_name, img_obj):
+
+    img = nib.Nifti1Image(image, img_obj.affine, header=img_obj.header)
+    nib.save(img, filepath_name)
+
 
 #%% Parser
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')

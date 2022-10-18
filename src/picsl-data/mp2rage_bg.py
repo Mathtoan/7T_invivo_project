@@ -1,7 +1,6 @@
 #%% Imports
 import argparse
 import os
-import sys
 import time
 
 import nibabel as nib
@@ -10,10 +9,15 @@ import numpy as np
 from batchgenerators.utilities.file_and_folder_operations import subdirs
 from scipy.signal import medfilt
 
-sys.path.insert(1, '../')
-from utils import format_time
-
-#%% Function
+#%% Functions
+def format_time(t):
+    ms = int((t - int(t))*100)
+    mins, s = divmod(int(t), 60)
+    h, m = divmod(mins, 60)
+    if h:
+        return f'{h:d}:{m:02d}:{s:02d}.{ms:03d}'
+    else:
+        return f'{m:02d}:{s:02d}.{ms:03d}'
 
 # From https://github.com/allucas/mp2rage_functions
 def remove_mp2rage_bg(inv1_name, inv2_name, uni_name, output):
