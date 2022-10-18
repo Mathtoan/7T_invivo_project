@@ -74,3 +74,9 @@ for subject in subjects_list:
                 print(f"done. ({format_time(t)})")
             else:
                 print(f"{mp2rage_remove_bg_path} already created")
+        else:
+            for filepath in (inv1_path, inv2_path, mp2rage_path):
+                if os.path.exists(filepath):
+                    print(f'{filepath} found')
+                else:
+                    print(f'{filepath} missing.')
