@@ -1,10 +1,15 @@
+import argparse
+import sys
+
 import numpy as np
-import nibabel as nib
+
 from batchgenerators.utilities.file_and_folder_operations import *
 from nnunet.dataset_conversion.utils import generate_dataset_json
 from nnunet.paths import nnUNet_raw_data
-import argparse
 from random import shuffle
+
+sys.path.insert(1, '../')
+from utils import read_nifti, save_nifti
 
 #%% Parser
 def percentFloat (string):
@@ -96,19 +101,6 @@ root = '/home/mtduong/7T_invivo_project/'
 task_root = join(root, 'task', task_name)
 maybe_mkdir_p(task_root)
 # maybe_mkdir_p(join(root), )
-
-#%% Read and write nifti functions
-def read_nifti(filepath_image):
-
-    img = nib.load(filepath_image)
-    image_data = img.get_fdata()
-
-    return image_data, img
-
-def save_nifti(image, filepath_name, img_obj):
-
-    img = nib.Nifti1Image(image, img_obj.affine, header=img_obj.header)
-    nib.save(img, filepath_name)
 
 #%% Setting up path in nnUNet_raw_data
 target_base = join(base, task_name)
