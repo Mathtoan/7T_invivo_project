@@ -1,6 +1,8 @@
 import os
 import argparse
+
 from batchgenerators.utilities.file_and_folder_operations import maybe_mkdir_p, subdirs
+from nnunet.utilities.task_name_id_conversion import convert_id_to_task_name
 
 # Code
 parser = argparse.ArgumentParser()
@@ -19,7 +21,12 @@ args = parser.parse_args()
 prediction_data_root=args.prediction_data_root
 dataset_folder=args.dataset_folder
 model = args.model
-task_name = args.task_name
+
+task_name = args.taskname
+if not task_name.startswith("Task"):
+    task_id = int(task_name)
+    task_name = convert_id_to_task_name(task_id)
+
 preprocess_type = args.preprocess_type # 'inv1_div_inv2' 'inv2_div_inv1' 'inv2_mul_mp2rage' 'remove_bg'
 
 input_folder = os.path.join(prediction_data_root, model, task_name, 'picsl-data', preprocess_type,'input')

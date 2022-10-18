@@ -6,6 +6,7 @@ import numpy as np
 from batchgenerators.utilities.file_and_folder_operations import *
 from glob import glob
 from nnunet.paths import nnUNet_raw_data
+from nnunet.utilities.task_name_id_conversion import convert_id_to_task_name
 from random import shuffle
 
 #%% Functions
@@ -53,7 +54,12 @@ dataset_folder = args.dataset_folder
 prediction_data_root = args.prediction_data_root
 # input_folder = args.input_folder
 # output_folder = args.output_folder
-task_name = args.task_name
+
+task_name = args.taskname
+if not task_name.startswith("Task"):
+    task_id = int(task_name)
+    task_name = convert_id_to_task_name(task_id)
+
 apply_mask = args.applymask
 model = args.model
 trainset = load_json(args.train_set)["trainset"]

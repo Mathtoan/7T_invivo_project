@@ -6,6 +6,7 @@ import numpy as np
 from batchgenerators.utilities.file_and_folder_operations import *
 from nnunet.dataset_conversion.utils import generate_dataset_json
 from nnunet.paths import nnUNet_raw_data
+from nnunet.utilities.task_name_id_conversion import convert_id_to_task_name
 from random import shuffle
 
 #%% Functions
@@ -63,7 +64,12 @@ args = parser.parse_args()
 
 #%% Parameter configutation
 base = args.base
+
 task_name = args.taskname
+if not task_name.startswith("Task"):
+    task_id = int(task_name)
+    task_name = convert_id_to_task_name(task_id)
+
 labels = load_json(args.labels)
 dataset = args.dataset
 applymask = args.applymask
