@@ -1,14 +1,46 @@
-import os
+#%% Imports
 import argparse
-from batchgenerators.utilities.file_and_folder_operations import maybe_mkdir_p, subdirs
+import os
+import sys
+import time
+
+import nibabel as nib
+import numpy as np
+
+from batchgenerators.utilities.file_and_folder_operations import subdirs
+from scipy.signal import medfilt
+
+sys.path.insert(1, '../')
+from utils import format_time
+
+#%% Function
+
+# From https://github.com/allucas/mp2rage_functions
+def remove_mp2rage_bg(inv1_name, inv2_name, uni_name, output):
+    inv1 = nib.load(inv1_name).get_fdata()
+    inv2 = nib.load(inv2_name).get_fdata()
+    uni = nib.load(uni_name).get_fdata()
+
+    beta=(np.mean(uni[-30:-10,-30:-10,-30:-10])*200)
+    INV1final = inv1
+    uni_fixed = np.real(((INV1final)*inv2-beta) / (np.abs(INV1final)**2 + np.abs(inv2)**2 + 2*beta))
+
+    uni_fixed_mask = -uni_fixed
+
+    uni_fixed_mask[uni_fixed>0] = -uni_fixed[uni_fixed>0]*(-1)
+
+    uni_fixed_mask = medfilt(uni_fixed_mask, 5)
+
+    uni_fixed_new = uni*(uni_fixed_mask<0.45)
+
+    uni_fixed_nifti = nib.Nifti1Image(uni_fixed_new, nib.load(uni_name).affine)
+    nib.save(uni_fixed_nifti, output)
 
 # Code
 parser = argparse.ArgumentParser()
-parser.add_argument('-d', '--dataset_folder', type=str, default='/data/mtduong/7T_invivo_project/dataset/picsl-data',
-                    help='Folder where the data to predict are.')
+parser.add_argument('-d', '--dataset_folder', type=str, default='/data/mtduong/7T_invivo_project/dataset/picsl-data')
 
 args = parser.parse_args()
-
 
 dataset_folder=args.dataset_folder
 
@@ -22,28 +54,19 @@ for subject in subjects_list:
     dates_list = subdirs(os.path.join(dataset_folder, subject), join=False)
     for date in dates_list:
         suffix = f'{date}_{subject}'
-        inv1 = os.path.join(dataset_folder, subject, date, f'{suffix}_mp2rinv1.nii.gz')
-        inv2 = os.path.join(dataset_folder, subject, date, f'{suffix}_mp2rinv2.nii.gz')
-        mp2rage = os.path.join(dataset_folder, subject, date, f'{suffix}_mp2rage.nii.gz')
+        inv1_path = os.path.join(dataset_folder, subject, date, f'{suffix}_mp2rinv1.nii.gz')
+        inv2_path = os.path.join(dataset_folder, subject, date, f'{suffix}_mp2rinv2.nii.gz')
+        mp2rage_path = os.path.join(dataset_folder, subject, date, f'{suffix}_mp2rage.nii.gz')
         
-        mp2rage_remove_bg = os.path.join(dataset_folder, subject, date, f'{suffix}_mp2rage_remove_bg.nii.gz')
+        mp2rage_remove_bg_path = os.path.join(dataset_folder, subject, date, f'{suffix}_mp2rage_remove_bg.nii.gz')
 
-        if os.path.exists(inv1) and os.path.exists(inv2) and os.path.exists(mp2rage):
+        if os.path.exists(inv1_path) and os.path.exists(inv2_path) and os.path.exists(mp2rage_path):
             print("All files found")
-            print(f"creating {mp2rage_remove_bg}", end="...")
-            if not os.path.exists(mp2rage_remove_bg):
-                os.system(f"python3 ~/mp2rage_functions/code/remove_mp2rage_bg.py -inv1 {inv1} -inv2 {inv2} -uni {mp2rage} -o {mp2rage_remove_bg} ")
-                print("done")
+            if not os.path.exists(mp2rage_remove_bg_path):
+                print(f"creating {mp2rage_remove_bg_path}...", end='', flush=True)
+                t = time.time()
+                remove_mp2rage_bg(inv1_path, inv2_path, mp2rage_path, mp2rage_remove_bg_path)
+                t = time.time() - t
+                print(f"done. ({format_time(t)})")
             else:
-                print("already created")
-        exit()
-        # inv2 = os.path.join(dataset_folder, subject, date, img_fname)
-
-        # ln_fname = f'{suffix}_{operation_type}_0000.nii.gz'
-        # ln_path = os.path.join(input_folder, ln_fname)
-
-        # if os.path.exists(img_path) and not os.path.exists(ln_path):
-        #     print(f"creating the link {ln_fname}")
-        #     os.symlink(img_path, ln_path)
-        # else:
-        #     print("link already created")
+                print(f"{mp2rage_remove_bg_path} already created")
