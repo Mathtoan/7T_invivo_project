@@ -40,7 +40,7 @@ def remove_mp2rage_bg(inv1_name, inv2_name, uni_name, output):
     uni_fixed_nifti = nib.Nifti1Image(uni_fixed_new, nib.load(uni_name).affine)
     nib.save(uni_fixed_nifti, output)
 
-# Code
+#%% Parser
 parser = argparse.ArgumentParser()
 parser.add_argument('-d', '--dataset_folder', type=str, default='/data/mtduong/7T_invivo_project/dataset/picsl-data')
 
@@ -48,13 +48,15 @@ args = parser.parse_args()
 
 dataset_folder=args.dataset_folder
 
+#%% Code
 folder_list = subdirs(dataset_folder, join=False)
 subjects_list = [i for i in folder_list if i.isdigit()] # Getting only folder with digit for subject id [to be improved]
 
 print("MP2RAGE Masking PICSL data")
 
-for subject in subjects_list:
-    print(f'Subject {subject}')
+for i in range(len(subjects_list)):
+    subject=subjects_list[i]
+    print(f'Subject {subject} ({i+1}/{len(subjects_list)} | {(i+1)/len(subjects_list)*100:.02f}%)')
     dates_list = subdirs(os.path.join(dataset_folder, subject), join=False)
     for date in dates_list:
         suffix = f'{date}_{subject}'
@@ -68,10 +70,14 @@ for subject in subjects_list:
             print("All files found")
             if not os.path.exists(mp2rage_remove_bg_path):
                 print(f"creating {mp2rage_remove_bg_path}...", end='', flush=True)
-                t = time.time()
-                remove_mp2rage_bg(inv1_path, inv2_path, mp2rage_path, mp2rage_remove_bg_path)
-                t = time.time() - t
-                print(f"done. ({format_time(t)})")
+                try:
+                    t = time.time()
+                    remove_mp2rage_bg(inv1_path, inv2_path, mp2rage_path, mp2rage_remove_bg_path)
+                    t = time.time() - t
+                    print(f"done. ({format_time(t)})")
+
+                except ValueError:
+                    print(f"Couldn't process {suffix}")
             else:
                 print(f"{mp2rage_remove_bg_path} already created")
         else:
