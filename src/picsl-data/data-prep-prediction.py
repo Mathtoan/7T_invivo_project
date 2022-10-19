@@ -14,7 +14,7 @@ parser.add_argument('-m', '--model', default="3d_fullres",
 parser.add_argument('-t', '--task_name', type=str, required=True,
                     help='task name or task ID, required.')
 parser.add_argument('-p', '--preprocess_type', type=str, required=True,
-                    choices=['inv1_div_inv2', 'inv2_div_inv1', 'inv2_mul_mp2rage', 'remove_bg'])
+                    choices=['inv1_div_inv2', 'inv2_div_inv1', 'inv2_mul_mp2rage', 'mp2rage_remove_bg'])
 args = parser.parse_args()
 
 
@@ -22,7 +22,7 @@ prediction_data_root=args.prediction_data_root
 dataset_folder=args.dataset_folder
 model = args.model
 
-task_name = args.taskname
+task_name = args.task_name
 if not task_name.startswith("Task"):
     task_id = int(task_name)
     task_name = convert_id_to_task_name(task_id)
@@ -51,6 +51,7 @@ for subject in subjects_list:
     ln_fname = f'{suffix}_{preprocess_type}_0000.nii.gz'
     ln_path = os.path.join(input_folder, ln_fname)
 
+    print(img_path)
     if os.path.exists(img_path) and not os.path.exists(ln_path):
         print(f"creating the link {ln_fname}")
         os.symlink(img_path, ln_path)

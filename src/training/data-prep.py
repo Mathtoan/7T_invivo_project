@@ -32,7 +32,7 @@ def percentFloat (string):
 parser = argparse.ArgumentParser(description='Data preparation for nnUNet training.')
 parser.add_argument('-b', '--base', metavar='PATH', type=str, default=nnUNet_raw_data,
                     help='Set the path of nnUNet_raw_data, default is the one set in environment')
-parser.add_argument('-t', '--taskname', metavar='task name', type=str, required=True,
+parser.add_argument('-t', '--task_name', metavar='task name', type=str, required=True,
                     help='Name of the task, should be in this format : Task[#]_[name]')
 parser.add_argument('-l', '--labels', metavar='PATH', type=str, default='/home/mtduong/7T_invivo_project/labels.json',
                     help='Path to labels.json')
@@ -55,7 +55,7 @@ args = parser.parse_args()
 #%% Parameter
 base = args.base
 
-task_name = args.taskname
+task_name = args.task_name
 if not task_name.startswith("Task"):
     task_id = int(task_name)
     task_name = convert_id_to_task_name(task_id)

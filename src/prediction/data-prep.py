@@ -55,7 +55,7 @@ prediction_data_root = args.prediction_data_root
 # input_folder = args.input_folder
 # output_folder = args.output_folder
 
-task_name = args.taskname
+task_name = args.task_name
 if not task_name.startswith("Task"):
     task_id = int(task_name)
     task_name = convert_id_to_task_name(task_id)
