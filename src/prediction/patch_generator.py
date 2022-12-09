@@ -29,6 +29,7 @@ def get_patch_origin(fname_input, label=None, n=None):
     im_data, _ = read_nifti(fname_input)
     
     labels = np.unique(im_data)
+    labels = labels[1:] # Removing bg label
     
     for i in range(len(labels)):
         x, y, z, = np.where(im_data == labels[i])
