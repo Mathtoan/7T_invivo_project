@@ -28,7 +28,19 @@ def get_patch_origin(fname_input, label=None, n=None):
     
     im_data, _ = read_nifti(fname_input)
     
-    labels = np.unique(im_data)
+    labels, occurance = np.unique(im_data, return_counts=True)
+    labels, occurance = labels[1:], occurance[1:]
+    total_occurance = np.sum(occurance)
+
+    n = 500 # TODO : TBD
+    
+    num_patch_per_label = [round(occurance[i]/total_occurance * n) for i in range(len(occurance)-1)]
+    num_patch_per_label.append(n - np.sum(num_patch_per_label))
+    
+    print("labels", labels)
+    print("occurance", occurance)
+    print("total_occurance", total_occurance)
+    print("num_patch_per_label", num_patch_per_label)
     
     for i in range(len(labels)):
         x, y, z, = np.where(im_data == labels[i])
@@ -37,19 +49,9 @@ def get_patch_origin(fname_input, label=None, n=None):
             idx = [i for i in range(len(x))]
             shuffle(idx)
             
-            origin_coord[f"{int(labels[i])}"] = [x[idx[0]]+1, y[idx[0]]+1, z[idx[0]]+1]
-        
-    
-    # x, y, z, = np.where(im_data == label)
-    
-    # idx = [i for i in range(len(x))]
-    # shuffle(idx)
-    
-    # if n is None:
-    #     n = len(x)
-    # for i in range(n):
-    #     origin_coord.append([x[idx[i]]+1, y[idx[i]]+1, z[idx[i]]+1])
-    #     # print([x[idx[i]], y[idx[i]], z[idx[i]]])
+            origin_coord[f"{int(labels[i])}"] = []
+            for k in range(num_patch_per_label[i]):
+                origin_coord[f"{int(labels[i])}"].append([x[idx[k]]+1, y[idx[k]]+1, z[idx[k]]+1])
     
     return origin_coord
 
@@ -64,17 +66,17 @@ def test():
     dkt_path =  os.path.join(antsct_path, "sub-125678_ses-20191217x1409_DKT31.nii.gz")
     scan_path =  os.path.join(antsct_path, "sub-125678_ses-20191217x1409_PreprocessedInput.nii.gz")
     
-    size = (64, 64, 64)
+    size = (32, 32, 32)
     # origin_coord = get_patch_origin(dkt_path, 2016, n=4)
     origin_coord = get_patch_origin(dkt_path)
     
-    i = 1
-    for label in origin_coord:
-        print(f"{label} ({i}/{len(origin_coord)})")
-        extract_region(scan_path, os.path.join(output_dir, f"{label}_scan_{size[0]}x{size[1]}x{size[2]}.nii.gz"), origin_coord[label], size)
-        extract_region(dkt_path, os.path.join(output_dir, f"{label}_dkt_{size[0]}x{size[1]}x{size[2]}.nii.gz"), origin_coord[label], size)
+    # i = 1
+    # for label in origin_coord:
+    #     print(f"{label} ({i}/{len(origin_coord)})")
+    #     extract_region(scan_path, os.path.join(output_dir, f"{label}_scan_{size[0]}x{size[1]}x{size[2]}.nii.gz"), origin_coord[label], size)
+    #     extract_region(dkt_path, os.path.join(output_dir, f"{label}_dkt_{size[0]}x{size[1]}x{size[2]}.nii.gz"), origin_coord[label], size)
         
-        i += 1
+    #     i += 1
 
     # # To check the coordonate 
     # coords = list(permutations([134, 145, 190]))
@@ -139,12 +141,12 @@ def main():
                 f_scan_name_output = os.path.join(output_dir, f"{subject}_{label}_scan_{str_size}.nii.gz") 
                 f_seg_name_output = os.path.join(output_dir, f"{subject}_{label}_seg_{str_size}.nii.gz") 
                 
-                extract_region(scan_path, f_scan_name_output, origin_coord[label], size)
-                extract_region(seg_path, f_seg_name_output, origin_coord[label], size)
+                extract_region(scan_path, f_scan_name_output, origin_coord[label][0], size)
+                extract_region(seg_path, f_seg_name_output, origin_coord[label][0], size)
                 counter += 1
         else:
             print("antsct dir not found")
             continue
     
     
-main()
+test()
