@@ -2,9 +2,12 @@ import argparse
 import os
 import numpy as np
 import nibabel as nib
+import pandas as pd
 
 from random import shuffle
 from glob import glob
+from tqdm import tqdm
+from nipype.algorithms.metrics import Overlap
 
 from batchgenerators.utilities.file_and_folder_operations import subdirs, maybe_mkdir_p
 
@@ -23,13 +26,25 @@ def extract_region(fname_input, fname_output, origin, size):
     bash_command = f"c3d {fname_input} -region {origin[0]}x{origin[1]}x{origin[2]}vox {size[0]}x{size[1]}x{size[2]}vox -o {fname_output}"
     os.system(bash_command)
 
-def get_patch_origin(fname_input, label=None, n=None): 
+def get_patch_origin(fname_input, n=None): 
     origin_coord = {}
     
     im_data, _ = read_nifti(fname_input)
     
-    labels = np.unique(im_data)
-    labels = labels[1:] # Removing bg label
+    labels, occurance = np.unique(im_data, return_counts=True)
+    labels, occurance = labels[1:], occurance[1:]
+    total_occurance = np.sum(occurance)
+
+    if n is None:
+        n = 1000 # TODO : TBD
+    
+    num_patch_per_label = [round(occurance[i]/total_occurance * n) for i in range(len(occurance)-1)]
+    num_patch_per_label.append(n - np.sum(num_patch_per_label))
+    
+    # print("labels", labels)
+    # print("occurance", occurance)
+    # print("total_occurance", total_occurance)
+    # print("num_patch_per_label", num_patch_per_label)
     
     for i in range(len(labels)):
         x, y, z, = np.where(im_data == labels[i])
@@ -38,19 +53,9 @@ def get_patch_origin(fname_input, label=None, n=None):
             idx = [i for i in range(len(x))]
             shuffle(idx)
             
-            origin_coord[f"{int(labels[i])}"] = [x[idx[0]]+1, y[idx[0]]+1, z[idx[0]]+1]
-        
-    
-    # x, y, z, = np.where(im_data == label)
-    
-    # idx = [i for i in range(len(x))]
-    # shuffle(idx)
-    
-    # if n is None:
-    #     n = len(x)
-    # for i in range(n):
-    #     origin_coord.append([x[idx[i]]+1, y[idx[i]]+1, z[idx[i]]+1])
-    #     # print([x[idx[i]], y[idx[i]], z[idx[i]]])
+            origin_coord[f"{int(labels[i])}"] = []
+            for k in range(num_patch_per_label[i]):
+                origin_coord[f"{int(labels[i])}"].append([x[idx[k]]+1, y[idx[k]]+1, z[idx[k]]+1])
     
     return origin_coord
 
@@ -65,17 +70,17 @@ def test():
     dkt_path =  os.path.join(antsct_path, "sub-125678_ses-20191217x1409_DKT31.nii.gz")
     scan_path =  os.path.join(antsct_path, "sub-125678_ses-20191217x1409_PreprocessedInput.nii.gz")
     
-    size = (64, 64, 64)
+    size = (32, 32, 32)
     # origin_coord = get_patch_origin(dkt_path, 2016, n=4)
     origin_coord = get_patch_origin(dkt_path)
     
-    i = 1
-    for label in origin_coord:
-        print(f"{label} ({i}/{len(origin_coord)})")
-        extract_region(scan_path, os.path.join(output_dir, f"{label}_scan_{size[0]}x{size[1]}x{size[2]}.nii.gz"), origin_coord[label], size)
-        extract_region(dkt_path, os.path.join(output_dir, f"{label}_dkt_{size[0]}x{size[1]}x{size[2]}.nii.gz"), origin_coord[label], size)
+    # i = 1
+    # for label in origin_coord:
+    #     print(f"{label} ({i}/{len(origin_coord)})")
+    #     extract_region(scan_path, os.path.join(output_dir, f"{label}_scan_{size[0]}x{size[1]}x{size[2]}.nii.gz"), origin_coord[label], size)
+    #     extract_region(dkt_path, os.path.join(output_dir, f"{label}_dkt_{size[0]}x{size[1]}x{size[2]}.nii.gz"), origin_coord[label], size)
         
-        i += 1
+    #     i += 1
 
     # # To check the coordonate 
     # coords = list(permutations([134, 145, 190]))
@@ -86,10 +91,10 @@ def test():
     #     # print(im_data[coord[0],coord[1],coord[2]])
     #     print(f"label({coord[0]},{coord[1]},{coord[2]}) : {im_data[coord[0],coord[1],coord[2]]}")
 
-
-def main():
+def patches_3T():
     SC7T_path = "/home/mtduong/data/SC7T/"
-    output_root_path = "/home/mtduong/7T_invivo_project/data/dataset/patches"
+    # output_root_path = "/home/mtduong/7T_invivo_project/tmp/playground_patch"
+    output_root_path = "/home/mtduong/7T_invivo_project/data/dataset/patches/3T"
     maybe_mkdir_p(output_root_path)
 
     subjects_list = subdirs(SC7T_path, join=False)
@@ -102,8 +107,7 @@ def main():
     for k in range(len(subjects_list)):
         subject = subjects_list[k]
         print(f"Subject {subject}")
-    
-        
+
         antsct_path = os.path.join(SC7T_path, subject, 'antsct')
         
         if os.path.exists(antsct_path):
@@ -137,15 +141,95 @@ def main():
                 maybe_mkdir_p(output_dir)
                 
                 print(f"Label {label} ({counter}/{len(origin_coord)})")
-                f_scan_name_output = os.path.join(output_dir, f"{subject}_{label}_scan_{str_size}.nii.gz") 
-                f_seg_name_output = os.path.join(output_dir, f"{subject}_{label}_seg_{str_size}.nii.gz") 
                 
-                extract_region(scan_path, f_scan_name_output, origin_coord[label], size)
-                extract_region(seg_path, f_seg_name_output, origin_coord[label], size)
+                for i in range(len(origin_coord[label])) :
+                    f_scan_name_output = os.path.join(output_dir, f"{subject}_{label}_scan_{str_size}_{i:03d}.nii.gz") 
+                    f_seg_name_output = os.path.join(output_dir, f"{subject}_{label}_seg_{str_size}_{i:03d}.nii.gz") 
+                    
+                    extract_region(scan_path, f_scan_name_output, origin_coord[label][i], size)
+                    extract_region(seg_path, f_seg_name_output, origin_coord[label][i], size)
                 counter += 1
         else:
             print("antsct dir not found")
             continue
+
+def patches_7T():
+    preprocessed_path = "/home/mtduong/data/7T_invivo_project/dataset/preprocessed/"
+    output_root_path = "/home/mtduong/7T_invivo_project/data/dataset/patches/7T_bis"
+    dkt_path_root = os.path.join("/home/mtduong/7T_invivo_project/data/dataset/patches/7T", "DKT")
+    # output_root_path = "/home/mtduong/7T_invivo_project/data/dataset/patches/7T"
+    # dkt_path_root = os.path.join(output_root_path, "DKT")
+    maybe_mkdir_p(output_root_path)
+    
+    size = (64, 64, 64) # TODO : have to actually decide the size (to test : 32x32x32)
+    str_size = f"{size[0]}x{size[1]}x{size[2]}"
+    
+    subjects_list = subdirs(preprocessed_path, join=False)
+
+    print(f"Size : {str_size}")
+    print(subjects_list)
+    
+    for k in range(len(subjects_list)):
+        subject = subjects_list[k]
+        print(f"Subject {subject}")
+        
+        dkt_path = os.path.join(dkt_path_root, subject, f"{subject}_3TDKTTo7TDeformed.nii.gz")
+        if not(os.path.exists(dkt_path)) :
+            print("DKT file not found")
+            continue
+        scan_path = os.path.join(preprocessed_path, subject, f"{subject}_T1w_7T_Preproc.nii.gz")
+        seg_path = os.path.join(preprocessed_path, subject, f"{subject}_3TSegTo7TDeformed.nii.gz")
+        
+        validation_root = "/data/mtduong/nnUNet/nnUNet_trained_models/nnUNet/3d_fullres/Task501_7Tgm/nnUNetTrainerV2__nnUNetPlansv2.1/all/validation_raw_postprocessed"
+        validation_path = os.path.join(validation_root, f"{subject}.nii.gz")
+        
+        print("Getting patch origin...", end='',  flush=True)
+        origin_coord = get_patch_origin(dkt_path)
+        print("done")
+        
+        mean_overlap = {
+            "name": [],
+            "mean_overlap": [],
+            "coord": [],
+            "side": []
+        }
+        
+        for label in tqdm(origin_coord, desc='Patch extraction') :
+            output_dir = os.path.join(output_root_path, str_size, subject, label)
+            maybe_mkdir_p(output_dir)
+            
+            for i in range(len(origin_coord[label])) :
+                f_scan_name_output = os.path.join(output_dir, f"{subject}_{label}_scan_{str_size}_{i:03d}.nii.gz") 
+                f_seg_name_output = os.path.join(output_dir, f"{subject}_{label}_seg_{str_size}_{i:03d}.nii.gz") 
+                f_validation_name_output = os.path.join(output_dir, f"{subject}_{label}_validation_{str_size}_{i:03d}.nii.gz") 
+                
+                
+                extract_region(scan_path, f_scan_name_output, origin_coord[label][i], size)
+                extract_region(seg_path, f_seg_name_output, origin_coord[label][i], size)
+                extract_region(validation_path, f_validation_name_output, origin_coord[label][i], size)
+                
+                overlap = Overlap()
+                overlap.inputs.volume1 = f_seg_name_output
+                overlap.inputs.volume2 = f_validation_name_output
+                res_overlap = overlap.run()
+                
+                mean_overlap["name"].append(f_validation_name_output)
+                mean_overlap["mean_overlap"].append(res_overlap.outputs.dice)
+                mean_overlap["coord"].append(f"{origin_coord[label][i]}")
+                if label.startswith("1"):
+                    mean_overlap["side"].append("left")
+                else:
+                    mean_overlap["side"].append("right")
+                
+            df = pd.DataFrame(mean_overlap)
+            df.to_csv(os.path.join(output_root_path, str_size, subject, "overlap.csv"), index=False)
+        print(" ")
+        
+        
+
+def main():
+    patches_7T()
+    
     
     
 main()
